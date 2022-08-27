@@ -1,45 +1,91 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import Counter from './lib/Counter.svelte'
+import type { load } from "./base/funcs";
+import { LoadType, Url } from "./base/types";
+import axios from 'axios'
+import Character from './lib/Character.svelte'
+import Button from './lib/Button.svelte'
+
+/**
+ * variables
+ */
+let characters = []
+let page = 1
+  
+const loadImage : load = async(rickAndMortyType : LoadType, page : number = 1) : Promise<[]> =>{
+  let response = null
+  switch(rickAndMortyType) {
+    case LoadType.CHARACTERS:
+      response = await axios.get(`${Url.CHARACTERS}?page=${page}`)
+      break
+    case LoadType.EPISODES:
+      response = await axios.get(`${Url.EPISODES}?page=${page}`)
+      break
+    case LoadType.LOCATIONS:
+      response = await axios.get(`${Url.LOCATIONS}?page=${page}`)
+      break
+    default:
+      throw new Error(`rickAndMortyType is ${rickAndMortyType}`)
+  }
+
+  return response.status === 200 ? response.data.results : null
+}
+
+const nextPage = async() : Promise<void> => { 
+  ++page
+  await init()
+}
+
+const previousPage = async() : Promise<void> =>{
+  --page
+  await init()
+}
+
+const initPage = async() : Promise<void> => {
+  page = 1
+  await init()
+}
+
+const init = async() =>{
+  characters = await loadImage(LoadType.CHARACTERS,page)
+}
+
+init()
+
+// onMount(async()=>{
+//   await init()
+// })
 </script>
 
 <main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank"> 
-      <img src="/vite.svg" class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank"> 
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
+  <h1>Rick And Morty</h1>
+  <div class="side-buttons">
+    <Button placeholder={"Previous"} onPress={previousPage} isDisabled={page === 1} />
+    <Button placeholder={"Next"} onPress={nextPage}  />
+    <Button placeholder={"Init"} onPress={initPage} isDisabled={page === 1} />
   </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
+  <div class="img-container" >
+    {#each characters as character}
+      <Character character={character}/>
+    {/each}
   </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
+  .side-buttons{
+    display : flex;
+    flex : 1;
+    flex-direction: row;
+    justify-content: space-around;
   }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
+
+  .img-container {
+    display: flex;
+    flex : 1;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    text-align: center;
+    flex-wrap: wrap;
   }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
+
 </style>
