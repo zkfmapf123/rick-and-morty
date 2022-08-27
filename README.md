@@ -33,3 +33,5 @@
   "episodes": "https://rickandmortyapi.com/api/episode"
 }
 ```
+
+![Rick_and_morty_screenshot](./public/pict.png)
